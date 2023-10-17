@@ -18,11 +18,9 @@ from approaches.chatread import ChatReadApproach
 # Replace these with your own values, either in environment variables or directly here
 AZURE_STORAGE_ACCOUNT = os.environ.get("AZURE_STORAGE_ACCOUNT")
 AZURE_STORAGE_CONTAINER = os.environ.get("AZURE_STORAGE_CONTAINER")
-AZURE_STORAGE_KEY = os.environ.get("AZURE_STORAGE_KEY")
 
 AZURE_SEARCH_SERVICE = os.environ.get("AZURE_SEARCH_SERVICE")
 AZURE_SEARCH_INDEX = os.environ.get("AZURE_SEARCH_INDEX")
-AZURE_SEARCH_KEY = os.environ.get("AZURE_SEARCH_KEY")
 
 KB_FIELDS_CONTENT = os.environ.get("KB_FIELDS_CONTENT") or "content"
 KB_FIELDS_CATEGORY = os.environ.get("KB_FIELDS_CATEGORY") or "category"
@@ -30,7 +28,6 @@ KB_FIELDS_SOURCEPAGE = os.environ.get("KB_FIELDS_SOURCEPAGE") or "sourcepage"
 
 AZURE_OPENAI_SERVICE = os.environ.get("AZURE_OPENAI_SERVICE")
 AZURE_OPENAI_API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION")
-AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
 
 AZURE_OPENAI_GPT_35_TURBO_DEPLOYMENT = os.environ.get("AZURE_OPENAI_GPT_35_TURBO_DEPLOYMENT")
 AZURE_OPENAI_GPT_35_TURBO_16K_DEPLOYMENT = os.environ.get("AZURE_OPENAI_GPT_35_TURBO_16K_DEPLOYMENT")
@@ -69,15 +66,16 @@ azure_credential = DefaultAzureCredential()
 openai.api_base = f"https://{AZURE_OPENAI_SERVICE}.openai.azure.com"
 openai.api_version = AZURE_OPENAI_API_VERSION
 
-if AZURE_OPENAI_KEY is None:
+if "AZURE_OPENAI_KEY" in os.environ:
+    openai.api_type = "azure"
+    openai.api_key = os.environ.get("AZURE_OPENAI_KEY")
+else:
     openai.api_type = "azure_ad"
     openai_token = azure_credential.get_token(
         "https://cognitiveservices.azure.com/.default"
     )
     openai.api_key = openai_token.token
-else:
-    openai.api_type = "azure"
-    openai.api_key = AZURE_OPENAI_KEY
+
 
 # Used by the OpenAI SDK
 # openai.api_type = "azure"
@@ -91,13 +89,19 @@ else:
 # openai.api_key = os.environ.get("AZURE_OPENAI_KEY")
 
 # Set up clients for Cognitive Search and Storage
-search_creds = azure_credential if AZURE_SEARCH_KEY is None else AzureKeyCredential(AZURE_SEARCH_KEY)
+if "AZURE_SEARCH_KEY" in os.environ:
+    search_creds = AzureKeyCredential(os.environ.get("AZURE_SEARCH_KEY"))
+else:
+    search_creds = azure_credential
 search_client = SearchClient(
     endpoint=f"https://{AZURE_SEARCH_SERVICE}.search.windows.net",
     index_name=AZURE_SEARCH_INDEX,
     credential=search_creds)
 
-storage_creds = azure_credential if AZURE_STORAGE_KEY is None else AZURE_STORAGE_KEY
+if "AZURE_STORAGE_KEY" in os.environ:
+    storage_creds = os.environ.get("AZURE_STORAGE_KEY")
+else:
+    storage_creds = azure_credential
 blob_client = BlobServiceClient(
     account_url=f"https://{AZURE_STORAGE_ACCOUNT}.blob.core.windows.net", 
     credential=storage_creds)
@@ -193,7 +197,7 @@ def docsearch():
 
 def ensure_openai_token():
     global openai_token
-    if AZURE_OPENAI_KEY is None:
+    if "AZURE_OPENAI_KEY" not in os.environ:
         if openai_token.expires_on < int(time.time()) - 60:
             openai.api_type = "azure_ad"
             openai_token = azure_credential.get_token("https://cognitiveservices.azure.com/.default")

@@ -9,14 +9,21 @@ from opencensus.ext.azure.log_exporter import AzureLogHandler
 from enum import Enum
 from azure.cosmos import CosmosClient
 from azure.identity import DefaultAzureCredential
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # CosmosDB
-endpoint = os.environ.get("AZURE_COSMOSDB_ENDPOINT")
-key = os.environ.get("COSMOSDB_KEY")
-database_name = os.environ.get("AZURE_COSMOSDB_DATABASE")
-container_name = os.environ.get("AZURE_COSMOSDB_CONTAINER")
+endpoint = os.environ["AZURE_COSMOSDB_ENDPOINT"]
+database_name = os.environ["AZURE_COSMOSDB_DATABASE"]
+container_name = os.environ["AZURE_COSMOSDB_CONTAINER"]
+
 # CosmosDB Initialization
-credential = DefaultAzureCredential(exclude_shared_token_cache_credential=True) if key is None else key
+if "COSMOSDB_KEY" in os.environ:
+    credential = os.environ["COSMOSDB_KEY"]
+else:
+    credential = DefaultAzureCredential(exclude_shared_token_cache_credential=True) 
+
 database = CosmosClient(endpoint, credential).get_database_client(database_name)
 container = database.get_container_client(container_name)
 
