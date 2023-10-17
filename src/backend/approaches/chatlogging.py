@@ -16,7 +16,7 @@ key = os.environ.get("COSMOSDB_KEY")
 database_name = os.environ.get("AZURE_COSMOSDB_DATABASE")
 container_name = os.environ.get("AZURE_COSMOSDB_CONTAINER")
 # CosmosDB Initialization
-credential = DefaultAzureCredential() if key is None else key
+credential = DefaultAzureCredential(exclude_shared_token_cache_credential=True) if key is None else key
 database = CosmosClient(endpoint, credential).get_database_client(database_name)
 container = database.get_container_client(container_name)
 
