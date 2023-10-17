@@ -23,7 +23,9 @@ jobs:
       - name: Create and populate .env file
         env:
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
           AZURE_SEARCH_SERVICE: ${{ secrets.AZURE_SEARCH_SERVICE }}
+          AZURE_SEARCH_KEY: ${{ secrets.AZURE_SEARCH_KEY }}
           AZURE_OPENAI_SERVICE: ${{ secrets.AZURE_OPENAI_SERVICE }}
           AZURE_OPENAI_GPT_35_TURBO_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_GPT_35_TURBO_DEPLOYMENT }}
           AZURE_OPENAI_GPT_35_TURBO_16K_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_GPT_35_TURBO_16K_DEPLOYMENT }}
@@ -36,9 +38,11 @@ jobs:
           touch .env
           echo AZURE_STORAGE_ACCOUNT="$AZURE_STORAGE_ACCOUNT" >> .env
           echo AZURE_STORAGE_CONTAINER="ref5-content" >> .env
+          echo AZURE_STORAGE_KEY="$AZURE_STORAGE_KEY" >> .env
 
           echo AZURE_SEARCH_SERVICE="$AZURE_SEARCH_SERVICE" >> .env
           echo AZURE_SEARCH_INDEX="gptkbindex" >> .env
+          echo AZURE_SEARCH_KEY="$AZURE_SEARCH_KEY" >> .env
           echo KB_FIELDS_CONTENT="content" >> .env
           echo KB_FIELDS_CATEGORY="category" >> .env
           echo KB_FIELDS_SOURCEPAGE="sourcepage" >> .env
